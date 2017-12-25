@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 
 root = 'http://wiki.teamliquid.net/'
 
-
 def obtain_patch_note_links(URL):
     page = requests.get(URL)
     parsed_page = BeautifulSoup(page.content, 'html.parser')
