@@ -40,7 +40,12 @@ def scrape_patches(URL):
                 if next_sibling.name == 'ul':
                     if heading_title not in patch_data:
                         patch_data[heading_title] = []
-                    patch_data[heading_title] += next_sibling.get_text().split('\n')
+                    next_text = [
+                        text for text in next_sibling.get_text().split('\n') if len(
+                            text.split(" ")
+                        ) > 4
+                    ]
+                    patch_data[heading_title] += next_text
                 # This is for a descriptive list (set of bullet points commonly used for balance changes)
                 elif next_sibling.name == 'dl':
                     print([dl.text for dl in next_sibling][0])
@@ -176,4 +181,3 @@ if __name__ == "__main__":
             if key not in complete_patch_data:
                 complete_patch_data[key] = []
             complete_patch_data[key] += val
-
