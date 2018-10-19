@@ -1,5 +1,6 @@
 import requests
 import re
+import pickle
 from bs4 import BeautifulSoup
 
 root = 'http://liquipedia.net'
@@ -38,26 +39,41 @@ def scrape_patches(URL):
                 #input('This is a sibling. Sibling.name = ' + next_sibling.name)
                 # This is for a single bullet point (i.e. general patch notes)
                 if next_sibling.name == 'ul':
-                    if heading_title not in patch_data:
-                        patch_data[heading_title] = []
+                    heading_title_formatted = " ".join([word.capitalize() for word in heading_title.split(" ")])
+                    if heading_title_formatted not in patch_data:
+                        patch_data[heading_title_formatted] = []
                     next_text = [
                         text for text in next_sibling.get_text().split('\n') if len(
                             text.split(" ")
                         ) > 4
                     ]
-                    patch_data[heading_title] += next_text
+                    patch_data[heading_title_formatted] += next_text
                 # This is for a descriptive list (set of bullet points commonly used for balance changes)
                 elif next_sibling.name == 'dl':
-                    print([dl.text for dl in next_sibling][0])
-                    exit()
-                    print(dir(next_sibling))
-                    print(next_sibling.prettify())
-                    input('^^^ DL Sibling text')
-
-    for key, val in patch_data.items():
-        print('\n')
-        print(key, val)
-    input('Completed one...')
+                    try:
+                        full_element = [dl.text for dl in next_sibling][0].split("\n")
+                    except AttributeError:
+                        # No text element
+                        continue
+                    if "Units" not in patch_data.keys():
+                        patch_data["Units"] = {}
+                    for line in full_element:
+                        if len(line.split(" ")) == 1:
+                            # Only one word, therefore this is the unit name
+                            unit_name = line.capitalize()
+                            if unit_name not in patch_data["Units"]:
+                                patch_data["Units"][unit_name] = []
+                                continue
+                        try:
+                            if (line != unit_name) and (line not in patch_data["Units"][unit_name]):
+                                patch_data["Units"][unit_name].append(line)
+                        except UnboundLocalError:
+                            # Patch note is not sorted by unit name
+                            unit_name = "Misc"
+                            if unit_name not in patch_data["Units"]:
+                                patch_data["Units"][unit_name] = []
+                            if (line != unit_name) and (line not in patch_data["Units"][unit_name]):
+                                patch_data["Units"][unit_name].append(line)
     return patch_data
 
 
@@ -174,10 +190,23 @@ def scrape_patches(URL):
 
 if __name__ == "__main__":
     patch_links = obtain_patch_note_links(root + '/starcraft2/Patches')
+    patch_links = sorted(list(set(patch_links)), reverse=True)
+    print("Found", len(patch_links), "patch links to parse.")
     complete_patch_data = {}
     for patch_link in patch_links:
         patch_data = scrape_patches(root + patch_link)
         for key, val in patch_data.items():
             if key not in complete_patch_data:
-                complete_patch_data[key] = []
-            complete_patch_data[key] += val
+                if type(val) is not dict:
+                    complete_patch_data[key] = []
+                else:
+                    complete_patch_data[key] = {}
+            if type(val) is not dict:
+                complete_patch_data[key] += val
+            else:
+                for key2, val2 in val.items():
+                    if key2 not in complete_patch_data[key]:
+                        complete_patch_data[key][key2] = []
+                    complete_patch_data[key][key2].append(val2)
+    with open("patch_data.pickle", "wb+") as pickle_file:
+        pickle.dump(complete_patch_data, pickle_file)
