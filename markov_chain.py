@@ -8,33 +8,63 @@ class MarkovChain(object):
         self.input_data = input_data
         self.generate_database()
 
-    def generate_database(self):
-        self.db = db_factory()
-        #text_sample = word_iterator(input_data)
+    def generate_database(self, n_words=2):
+        # Set up a blank database, which is a defaultdict
+        # where empty values are set to 1.0
+        self.db = create_database()
         for sentence in self.input_data:
             words = sentence.strip().split()
             self.db[("",)][words[0]] += 1
-            for order in range(1, 3):
-                print("NEW ORDER")
+            for order in range(1, n_words):
+                # n_words controls the number of words to look at
+                # when assigning the order probabilities in the chain.
+                # The larger the number, the more sense the generated
+                # sentence will make, but the higher the probability
+                # the chain regurgitates a sentence that already exists.
                 for i in range(len(words) - 1):
                     if i + order >= len(words):
                         continue
                     word = tuple(words[i:i + order])
                     self.db[word][words[i + order]] += 1
                 self.db[tuple(words[len(words) - order:len(words)])][""] += 1
+        # Database now has word frequencies, change these to probabilities
+        for word in self.db:
+            word_freq = 0
+            for next_word in self.db[word]:
+                word_freq += self.db[word][next_word]
+            if word_freq > 0:
+                for next_word in self.db[word]:
+                    self.db[word][next_word] /= word_freq
 
-                print(self.db)
+    def generate_sentence(self):
+        # Now the fun bit! Need to pick words based on the probabilities
+        # and the order.
+        # At first, the sentence is empty.
+        sentence = []
+        next_word = self.get_next_word(("",))
+        while next_word:
+            sentence.append(next_word)
+            next_word = self.get_next_word(sentence)
+        return " ".join(sentence).strip()
 
+
+    def get_next_word(self, previous_word):
         pass
 
-
-def db_factory():
+def create_database():
+    # Create a dictionary where non-specified word chains have
+    # a default value that is a defaultdict that returns 1 for
+    # none-specified words.
     return defaultdict(one_dict)
 
 def one_dict():
+    # Create a dictionary where non-specified word keys have
+    # a default value of one.
     return defaultdict(one)
 
 def one():
+    # Defaultdict requires a callable, so create a function
+    # that just returns 1.0
     return 1.0
 
 
