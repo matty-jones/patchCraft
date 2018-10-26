@@ -154,7 +154,7 @@ if __name__ == "__main__":
     generated_sentences = 0
     while generated_sentences < args.n_sentences:
         new_sentence = chain.generate_sentence()
-        if (len(new_sentence) < args.min_sentence_len) or (new_sentence in data_to_use):
+        if (len(new_sentence.split()) < args.min_sentence_len) or (new_sentence in data_to_use):
             continue
         else:
             print(new_sentence)
