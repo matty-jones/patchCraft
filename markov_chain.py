@@ -26,9 +26,9 @@ class MarkovChain(object):
                 for i in range(len(words) - 1):
                     if i + order >= len(words):
                         continue
-                    word = tuple(words[i:i + order])
+                    word = tuple(words[i : i + order])
                     self.db[word][words[i + order]] += 1
-                self.db[tuple(words[len(words) - order:len(words)])][""] += 1
+                self.db[tuple(words[len(words) - order : len(words)])][""] += 1
         # Database now has word frequencies, change these to probabilities
         for word in self.db:
             word_freq = 0
@@ -48,7 +48,6 @@ class MarkovChain(object):
             sentence.append(next_word)
             next_word = self.get_next_word(sentence)
         return " ".join(sentence).strip()
-
 
     def get_next_word(self, previous):
         previous = tuple(previous)
@@ -98,45 +97,57 @@ def word_iterator(sentence):
     splitter = re.compile(" ")
     pos = 0
     for match in splitter.finditer(sentence):
-        word = sentence[pos:match.start()].strip()
+        word = sentence[pos : match.start()].strip()
         if word:
             yield word
         pos = match.start() + 1
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog='PatchCraft',
-                                     formatter_class=argparse.
-                                     ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-n", "--n_sentences",
-                        type=int,
-                        default=10,
-                        required=False,
-                        help='''The number of non-input sentences to generate.''')
-    parser.add_argument("-w", "--n_words",
-                        type=int,
-                        default=4,
-                        required=False,
-                        help='''The number of words to consider when deciding
+    parser = argparse.ArgumentParser(
+        prog="PatchCraft", formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        "-n",
+        "--n_sentences",
+        type=int,
+        default=10,
+        required=False,
+        help="""The number of non-input sentences to generate.""",
+    )
+    parser.add_argument(
+        "-w",
+        "--n_words",
+        type=int,
+        default=4,
+        required=False,
+        help="""The number of words to consider when deciding
                         order probabilities. A larger value results in more
                         accurate sentences, but less generation (higher chance
-                        of repeating input sentences).''')
-    parser.add_argument("-c", "--category",
-                        type=str,
-                        default="all",
-                        required=False,
-                        help='''Use to select a category of sentences
+                        of repeating input sentences).""",
+    )
+    parser.add_argument(
+        "-c",
+        "--category",
+        type=str,
+        default="all",
+        required=False,
+        help="""Use to select a category of sentences
                         to output. Good choices are "general", "balance changes",
                         "bug fixes", "co-op missions", and any of the starcraft
-                        races.''')
-    parser.add_argument("-l", "--min_sentence_len",
-                        type=int,
-                        default=5,
-                        required=False,
-                        help='''Generated sentences must contain at least this
-                        many words.''')
+                        races.""",
+    )
+    parser.add_argument(
+        "-l",
+        "--min_sentence_len",
+        type=int,
+        default=5,
+        required=False,
+        help="""Generated sentences must contain at least this
+                        many words.""",
+    )
     args = parser.parse_args()
-    data_file = './patch_data.pickle'
+    data_file = "./patch_data.pickle"
     with open(data_file, "rb") as pickle_file:
         original_data = pickle.load(pickle_file)
     data = {}
@@ -147,14 +158,26 @@ if __name__ == "__main__":
             data_to_use = data[args.category]
         except:
             print("Category", args.category, "not found. Using 'all' instead...")
-            data_to_use = [sentence for value in data.values() for sentence in value if len(sentence) > 10]
+            data_to_use = [
+                sentence
+                for value in data.values()
+                for sentence in value
+                if len(sentence) > 10
+            ]
     else:
-        data_to_use = [sentence for value in data.values() for sentence in value if len(sentence) > 10]
+        data_to_use = [
+            sentence
+            for value in data.values()
+            for sentence in value
+            if len(sentence) > 10
+        ]
     chain = MarkovChain(data_to_use, n_words=args.n_words)
     generated_sentences = 0
     while generated_sentences < args.n_sentences:
         new_sentence = chain.generate_sentence()
-        if (len(new_sentence.split()) < args.min_sentence_len) or (new_sentence in data_to_use):
+        if (len(new_sentence.split()) < args.min_sentence_len) or (
+            new_sentence in data_to_use
+        ):
             continue
         else:
             print(new_sentence)
