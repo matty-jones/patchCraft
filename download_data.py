@@ -3,53 +3,61 @@ import re
 import pickle
 from bs4 import BeautifulSoup
 
-root = 'http://liquipedia.net'
+root = "http://liquipedia.net"
+
 
 def obtain_patch_note_links(URL):
     page = requests.get(URL)
-    parsed_page = BeautifulSoup(page.content, 'html.parser')
-    links = [link['href'] for link in parsed_page.findAll(title=re.compile('^Patch '), href=re.compile('^((?!#).)*$'))]
+    parsed_page = BeautifulSoup(page.content, "html.parser")
+    links = [
+        link["href"]
+        for link in parsed_page.findAll(
+            title=re.compile("^Patch "), href=re.compile("^((?!#).)*$")
+        )
+    ]
     return links
 
 
 def scrape_patches(URL):
-    print('Parsing', URL)
+    print("Parsing", URL)
     page = requests.get(URL)
-    parsed_page = BeautifulSoup(page.content, 'html.parser')
-    #print(parsed_page)
+    parsed_page = BeautifulSoup(page.content, "html.parser")
+    # print(parsed_page)
     # Patch notes begin with an H3 so find these first
-    #heading_lists = [heading['title'] for heading in parsed_page.findAll('h3')]
+    # heading_lists = [heading['title'] for heading in parsed_page.findAll('h3')]
     patch_data = {}
-    for h2 in parsed_page.findAll('h2'):
+    for h2 in parsed_page.findAll("h2"):
         # Skip the left sidebar
-        if h2.get_text() == 'Contents':
+        if h2.get_text() == "Contents":
             continue
         category_title = h2.span.get_text()
         # Skip the final section
-        if category_title == 'External Links':
+        if category_title == "External Links":
             continue
         for heading in h2.findNextSiblings():
-            if heading.name != 'h3':
+            if heading.name != "h3":
                 continue
-            heading_title = heading.get_text().split('[edit]')[0]
-            #print(heading_title)
-            #input('This is a title')
+            heading_title = heading.get_text().split("[edit]")[0]
+            # print(heading_title)
+            # input('This is a title')
             for next_sibling in heading.findNextSiblings():
-                #print(next_sibling)
-                #input('This is a sibling. Sibling.name = ' + next_sibling.name)
+                # print(next_sibling)
+                # input('This is a sibling. Sibling.name = ' + next_sibling.name)
                 # This is for a single bullet point (i.e. general patch notes)
-                if next_sibling.name == 'ul':
-                    heading_title_formatted = " ".join([word.capitalize() for word in heading_title.split(" ")])
+                if next_sibling.name == "ul":
+                    heading_title_formatted = " ".join(
+                        [word.capitalize() for word in heading_title.split(" ")]
+                    )
                     if heading_title_formatted not in patch_data:
                         patch_data[heading_title_formatted] = []
                     next_text = [
-                        text for text in next_sibling.get_text().split('\n') if len(
-                            text.split(" ")
-                        ) > 4
+                        text
+                        for text in next_sibling.get_text().split("\n")
+                        if len(text.split(" ")) > 4
                     ]
                     patch_data[heading_title_formatted] += next_text
                 # This is for a descriptive list (set of bullet points commonly used for balance changes)
-                elif next_sibling.name == 'dl':
+                elif next_sibling.name == "dl":
                     try:
                         full_element = [dl.text for dl in next_sibling][0].split("\n")
                     except AttributeError:
@@ -65,14 +73,18 @@ def scrape_patches(URL):
                                 patch_data["Units"][unit_name] = []
                                 continue
                         try:
-                            if (line != unit_name) and (line not in patch_data["Units"][unit_name]):
+                            if (line != unit_name) and (
+                                line not in patch_data["Units"][unit_name]
+                            ):
                                 patch_data["Units"][unit_name].append(line)
                         except UnboundLocalError:
                             # Patch note is not sorted by unit name
                             unit_name = "Misc"
                             if unit_name not in patch_data["Units"]:
                                 patch_data["Units"][unit_name] = []
-                            if (line != unit_name) and (line not in patch_data["Units"][unit_name]):
+                            if (line != unit_name) and (
+                                line not in patch_data["Units"][unit_name]
+                            ):
                                 patch_data["Units"][unit_name].append(line)
     return patch_data
 
@@ -80,7 +92,7 @@ def scrape_patches(URL):
 # TODO: Remove the 'Official Source' and 'STARCRAFT II BALANCE UPDATE.....' lines
 # TODO: Fix nested <ul> s.t. we display them as 'New coop commanders: Mira and Matthew Han, Zeratul'
 
-#def get_blank_units_dict():
+# def get_blank_units_dict():
 #    LotVURL = root + '/starcraft2/Units_(Legacy_of_the_Void)'
 #    HotSURL = root + '/starcraft2/Units_(Heart_of_the_Swarm)'
 #    WoLURL = root + '/starcraft2/Units/WoL'
@@ -109,7 +121,7 @@ def scrape_patches(URL):
 #            elif tagName == 'table':
 #                print("---=== NEW H3 ===---")
 #                print(nextElement)
-#                
+#
 #
 #
 #
@@ -186,10 +198,8 @@ def scrape_patches(URL):
 #    #    exit()
 
 
-
-
 if __name__ == "__main__":
-    patch_links = obtain_patch_note_links(root + '/starcraft2/Patches')
+    patch_links = obtain_patch_note_links(root + "/starcraft2/Patches")
     patch_links = sorted(list(set(patch_links)), reverse=True)
     print("Found", len(patch_links), "patch links to parse.")
     complete_patch_data = {}
