@@ -17,7 +17,7 @@ class MarkovChain(object):
         for sentence in self.input_data:
             words = sentence.strip().split()
             self.db[("",)][words[0]] += 1
-            for order in range(1, n_words):
+            for order in range(n_words):
                 # n_words controls the number of words to look at
                 # when assigning the order probabilities in the chain.
                 # The larger the number, the more sense the generated
@@ -115,7 +115,7 @@ if __name__ == "__main__":
                         help='''The number of non-input sentences to generate.''')
     parser.add_argument("-w", "--n_words",
                         type=int,
-                        default=4,
+                        default=3,
                         required=False,
                         help='''The number of words to consider when deciding
                         order probabilities. A larger value results in more
