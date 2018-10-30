@@ -1,0 +1,13 @@
+Support has been horizontally flipped so the larva count is increased by 100% and last for 10 seconds.
+
+
+---=== General ===---
+
+Fixed an Offline Mode issue which could cause certain conversations to stop functioning when navigating between certain screens.
+Evasion: Adds a chance of becoming stuck in the Data Editor.
+Raised Supply Depots in HotS Campaign now properly jumps the camera to pop when travelling along cliffs.
+New trigger functions, actions, and events have been made across the entirety of Battle.net.
+Fixed an issue that could cause dropdown menus to become invulnerable when switching chat filters.
+Fixed a hole in the Options menu.
+The 30-minute time limit no longer occasionally becomes disabled after watching campaign cutscenes.
+
