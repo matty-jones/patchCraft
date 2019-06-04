@@ -1,6 +1,7 @@
 import requests
 import re
 import pickle
+import time as T
 from bs4 import BeautifulSoup
 
 root = "http://liquipedia.net"
@@ -204,6 +205,8 @@ if __name__ == "__main__":
     print("Found", len(patch_links), "patch links to parse.")
     complete_patch_data = {}
     for patch_link in patch_links:
+        # Liquipedia API requires no more than 1 request every 2 seconds
+        T.sleep(2)
         patch_data = scrape_patches(root + patch_link)
         for key, val in patch_data.items():
             if key not in complete_patch_data:
