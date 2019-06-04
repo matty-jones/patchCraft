@@ -31,7 +31,10 @@ def scrape_patches(URL):
         # Skip the left sidebar
         if h2.get_text() == "Contents":
             continue
-        category_title = h2.span.get_text()
+        try:
+            category_title = h2.span.get_text()
+        except AttributeError:
+            continue
         # Skip the final section
         if category_title == "External Links":
             continue
@@ -206,7 +209,7 @@ if __name__ == "__main__":
     complete_patch_data = {}
     for patch_link in patch_links:
         # Liquipedia API requires no more than 1 request every 2 seconds
-        T.sleep(2)
+        T.sleep(5)
         patch_data = scrape_patches(root + patch_link)
         for key, val in patch_data.items():
             if key not in complete_patch_data:
