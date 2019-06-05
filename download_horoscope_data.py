@@ -31,7 +31,6 @@ def obtain_patch_note_links(root_URL):
 
 
 def scrape_URL(URL):
-    print("Parsing", URL)
     page = requests.get(URL)
     parsed_page = BeautifulSoup(page.content, "html.parser")
     horoscope_data = {heading[:-1]: None for heading in horoscope_headings}
@@ -67,12 +66,15 @@ if __name__ == "__main__":
     data_URL = sorted(list(set(data_URL)), reverse=True)
     print("Found", len(data_URL), "patch links to parse.")
     data_by_zodiac = {zod_sign: {} for zod_sign in zodiac}
+    URL_counter = 0
     for zod_sign in zodiac:
         complete_horoscope_data = {heading: [] for heading in horoscope_headings}
         complete_table_data = {heading: [] for heading in table_headings}
         for URL in data_URL:
+            print("\rParsing URL {} of {} ({})...".format(URL_counter + 1, len(data_URL), URL), end=" ")
             if zod_sign not in URL:
                 continue
+            URL_counter += 1
             parsed_horoscope, parsed_table = scrape_URL(URL)
             for key, val in parsed_horoscope.items():
                 complete_horoscope_data[key].append(val)
