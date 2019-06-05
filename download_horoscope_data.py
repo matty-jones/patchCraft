@@ -65,22 +65,35 @@ if __name__ == "__main__":
     data_URL = obtain_patch_note_links(root)
     data_URL = sorted(list(set(data_URL)), reverse=True)
     print("Found", len(data_URL), "patch links to parse.")
-    data_by_zodiac = {zod_sign: {} for zod_sign in zodiac}
-    URL_counter = 0
-    for zod_sign in zodiac:
-        complete_horoscope_data = {heading: [] for heading in horoscope_headings}
-        complete_table_data = {heading: [] for heading in table_headings}
-        for URL in data_URL:
-            print("\rParsing URL {} of {} ({})...".format(URL_counter + 1, len(data_URL), URL), end=" ")
-            if zod_sign not in URL:
-                continue
-            URL_counter += 1
-            parsed_horoscope, parsed_table = scrape_URL(URL)
-            for key, val in parsed_horoscope.items():
-                complete_horoscope_data[key].append(val)
-            for key, val in parsed_table.items():
-                complete_table_data[key].append(val)
-        data_by_zodiac[zod_sign]["horoscope"] = complete_horoscope_data
-        data_by_zodiac[zod_sign]["table"] = complete_table_data
+    data_by_zodiac = {
+            zod_sign: {
+                "horoscope": {heading: [] for heading in horoscope_headings},
+                "table": {heading: [] for heading in table_headings}
+                }
+            for zod_sign in zodiac
+            }
+    for URL_counter, URL in enumerate(data_URL):
+        print("\rParsing URL {} of {} ({})...".format(URL_counter + 1, len(data_URL), URL), end=" ")
+        zod_sign = URL.split("/")[-3]
+        parsed_horoscope, parsed_table = scrape_URL(URL)
+        for key, val in parsed_horoscope.items():
+            data_by_zodiac[zod_sign]["horoscope"][key].append(val)
+        for key, val in parsed_table.items():
+            data_by_zodiac[zod_sign]["table"][key].append(val)
+    # for zod_sign in zodiac:
+    #     complete_horoscope_data = {heading: [] for heading in horoscope_headings}
+    #     complete_table_data = {heading: [] for heading in table_headings}
+    #     for URL in data_URL:
+    #         print("\rParsing URL {} of {} ({})...".format(URL_counter + 1, len(data_URL), URL), end=" ")
+    #         if zod_sign not in URL:
+    #             continue
+    #         URL_counter += 1
+    #         parsed_horoscope, parsed_table = scrape_URL(URL)
+    #         for key, val in parsed_horoscope.items():
+    #             complete_horoscope_data[key].append(val)
+    #         for key, val in parsed_table.items():
+    #             complete_table_data[key].append(val)
+    #     data_by_zodiac[zod_sign]["horoscope"] = complete_horoscope_data
+    #     data_by_zodiac[zod_sign]["table"] = complete_table_data
     with open("horoscope_data.pickle", "wb+") as pickle_file:
         pickle.dump(data_by_zodiac, pickle_file)
