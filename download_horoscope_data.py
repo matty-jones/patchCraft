@@ -64,7 +64,7 @@ def scrape_URL(URL):
 if __name__ == "__main__":
     data_URL = obtain_patch_note_links(root)
     data_URL = sorted(list(set(data_URL)), reverse=True)
-    print("Found", len(data_URL), "patch links to parse.")
+    print("Found", len(data_URL), "URLs to parse.")
     data_by_zodiac = {
             zod_sign: {
                 "horoscope": {heading: [] for heading in horoscope_headings},
