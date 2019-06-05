@@ -72,8 +72,13 @@ if __name__ == "__main__":
                 }
             for zod_sign in zodiac
             }
+    t0 = T.time()
     for URL_counter, URL in enumerate(data_URL):
-        print("\rParsing URL {} of {} ({})...".format(URL_counter + 1, len(data_URL), URL), end=" ")
+        t1 = T.time()
+        try:
+            print("\rParsing URL {} of {}. Elapsed time = {:.0f} seconds, Remaining time estimate = {:.0f} seconds...".format(URL_counter + 1, len(data_URL), t1 - t0, (t1 - t0) * (len(data_URL) - URL_counter) / URL_counter), end=" ")
+        except ZeroDivisionError:
+            print("\rParsing URL {} of {}.".format(URL_counter + 1, len(data_URL)), end=" ")
         zod_sign = URL.split("/")[-3]
         parsed_horoscope, parsed_table = scrape_URL(URL)
         for key, val in parsed_horoscope.items():
