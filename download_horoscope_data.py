@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup
 
 root = "http://www.0800-horoscope.com/horoscope-archive"
 zodiac = ["aries", "taurus", "gemini", "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces"]
+horoscope_headings = ["Family", "Love", "Friendship", "Career", "Finances"]
+table_headings = ["State of Mind", "Karma Numbers", "Buzz Words", "Compatible Sign"]
 
 def obtain_patch_note_links(root_URL):
     first_date = datetime.datetime(2003, 10, 27)
@@ -32,8 +34,6 @@ def scrape_URL(URL):
     print("Parsing", URL)
     page = requests.get(URL)
     parsed_page = BeautifulSoup(page.content, "html.parser")
-    horoscope_headings = ["Family", "Love", "Friendship", "Career", "Finances"]
-    table_headings = ["State of Mind", "Karma Numbers", "Buzz Words", "Compatible Sign"]
     horoscope_data = {heading[:-1]: None for heading in horoscope_headings}
     for h3 in parsed_page.findAll("h3"):
         # Family always comes first!
@@ -62,33 +62,23 @@ def scrape_URL(URL):
     return parsed_horoscope, parsed_table
 
 
-
 if __name__ == "__main__":
     data_URL = obtain_patch_note_links(root)
     data_URL = sorted(list(set(data_URL)), reverse=True)
     print("Found", len(data_URL), "patch links to parse.")
-    complete_data = {}
-    for URL in data_URL:
-        wobbey = scrape_URL(URL)
-
-
-
-
-    exit()
-    while True:
-        patch_data = scrape_patches(root + patch_link)
-        for key, val in patch_data.items():
-            if key not in complete_patch_data:
-                if type(val) is not dict:
-                    complete_patch_data[key] = []
-                else:
-                    complete_patch_data[key] = {}
-            if type(val) is not dict:
-                complete_patch_data[key] += val
-            else:
-                for key2, val2 in val.items():
-                    if key2 not in complete_patch_data[key]:
-                        complete_patch_data[key][key2] = []
-                    complete_patch_data[key][key2].append(val2)
-    with open("patch_data.pickle", "wb+") as pickle_file:
-        pickle.dump(complete_patch_data, pickle_file)
+    data_by_zodiac = {zod_sign: {} for zod_sign in zodiac}
+    for zod_sign in zodiac:
+        complete_horoscope_data = {heading: [] for heading in horoscope_headings}
+        complete_table_data = {heading: [] for heading in table_headings}
+        for URL in data_URL:
+            if zod_sign not in URL:
+                continue
+            parsed_horoscope, parsed_table = scrape_URL(URL)
+            for key, val in parsed_horoscope.items():
+                complete_horoscope_data[key].append(val)
+            for key, val in parsed_table.items():
+                complete_table_data[key].append(val)
+        data_by_zodiac[zod_sign]["horoscope"] = complete_horoscope_data
+        data_by_zodiac[zod_sign]["table"] = complete_table_data
+    with open("horoscope_data.pickle", "wb+") as pickle_file:
+        pickle.dump(data_by_zodiac, pickle_file)
